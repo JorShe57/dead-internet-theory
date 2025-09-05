@@ -1,26 +1,139 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Base palette custom properties */
+  --color-charcoal: #000000; /* Black */
+  --color-stone: #8D918D;    /* Stone Gray */
+  --color-electric-green: #39FF14; /* Electric Green */
+  --color-digital-blue: #275DFF;   /* Digital Blue */
+  --color-white: #FFFFFF;    /* Bright White */
+  --color-tan: #A58F7D;      /* Earthen Tan */
+
+  /* App defaults */
+  --background: var(--color-charcoal);
+  --foreground: var(--color-white);
+  --accent: var(--color-electric-green);
+  --surface: var(--color-stone);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Expose palette to Tailwind v4 classes */
+  --color-background: var(--color-charcoal);
+  --color-foreground: var(--color-white);
+  --color-surface: var(--color-stone);
+  --color-accent: var(--color-electric-green);
+  --color-electric-green: var(--color-electric-green);
+  --color-digital-blue: var(--color-digital-blue);
+  --color-neutral-tan: var(--color-tan);
+  --color-charcoal: var(--color-charcoal);
+  --color-stone: var(--color-stone);
+  /* Aliases for requested class names */
+  --color-deep-charcoal: var(--color-charcoal);
+  --color-stone-gray: var(--color-stone);
+  --color-bright-white: var(--color-white);
+  --font-sans: "Courier New", Courier, monospace;
+  --font-mono: "Courier New", Courier, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html, body {
+  height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
 }
+
+/* Accessibility helpers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Glitch effect */
+.glitch {
+  position: relative;
+  color: var(--color-electric-green);
+  text-shadow: 2px 0 var(--color-digital-blue);
+  animation: glitch 2s infinite;
+}
+
+/* New glitch animation using Electric Green and Digital Blue */
+@keyframes glitch {
+  2%, 64% {
+    transform: translate(2px, 0) skew(0deg);
+    color: #39FF14; /* Electric Green */
+    text-shadow: 2px 0 #275DFF; /* Digital Blue shadow */
+  }
+  4%, 60% {
+    transform: translate(-2px, 0) skew(0deg);
+    color: #275DFF; /* Digital Blue */
+    text-shadow: -2px 0 #39FF14; /* Electric Green shadow */
+  }
+  62% {
+    transform: translate(0, 0) skew(5deg);
+    color: #39FF14; /* Electric Green */
+  }
+}
+
+/* Buttons and inputs */
+.btn {
+  background: transparent;
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 10px rgba(57, 255, 20, 0.5); /* Electric Green glow */
+}
+.input {
+  background: var(--color-background);
+  border: 1px solid color-mix(in oklab, var(--color-surface) 30%, transparent);
+  color: var(--color-foreground);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+}
+
+/* Error messaging */
+.error-message {
+  color: var(--color-digital-blue);
+}
+
+/* Skeleton loading */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.12) 37%, rgba(255,255,255,0.06) 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+.skeleton-text { height: 0.875rem; border-radius: 4px; }
+
+/* Optional: Map legacy classes used in the app to new palette */
+/* This keeps existing emerald/black usages visually consistent with the new theme */
+.bg-black { background-color: var(--color-background) !important; }
+.text-emerald-100, .text-emerald-200, .text-emerald-300, .text-emerald-400, .text-emerald-500 {
+  color: var(--color-accent) !important;
+}
+.border-emerald-700\/50, .border-emerald-800\/50 {
+  border-color: color-mix(in oklab, var(--color-accent) 50%, transparent) !important;
+}
+.text-emerald-300\/80 { color: color-mix(in oklab, var(--color-accent) 80%, transparent) !important; }
+.text-emerald-200\/80 { color: color-mix(in oklab, var(--color-accent) 80%, transparent) !important; }
+.bg-emerald-500 { background-color: var(--color-accent) !important; }
+.border-emerald-500 { border-color: var(--color-accent) !important; }
+.bg-black\/40 { background-color: color-mix(in oklab, var(--color-charcoal) 40%, transparent) !important; }
+.bg-black\/30 { background-color: color-mix(in oklab, var(--color-charcoal) 30%, transparent) !important; }

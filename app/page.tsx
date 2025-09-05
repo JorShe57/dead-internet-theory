@@ -1,103 +1,159 @@
+"use client";
+import { useEffect, useRef, useState } from "react";
+import GlitchText from "@/components/ui/GlitchText";
 import Image from "next/image";
+import { exchangeCodeForSession, validateSession } from "@/lib/auth";
+import { useRouter } from "next/navigation";
+import { useNetworkStatus } from "@/lib/utils";
+import { useToast } from "@/components/system/ToastProvider";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const { online } = useNetworkStatus();
+  const { toast } = useToast();
+  const errRef = useRef<HTMLDivElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  useEffect(() => {
+    // auto-redirect if already valid session
+    (async () => {
+      const ok = await validateSession();
+      if (ok) router.replace("/album");
+    })();
+  }, [router]);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      await exchangeCodeForSession(code.trim());
+      toast({ title: "Access granted", description: "Welcome in.", variant: "success" });
+      router.replace("/album");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Invalid code";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (error && errRef.current) {
+      errRef.current.focus();
+    }
+  }, [error]);
+
+  // Try to autoplay video with audio on load; if blocked, autoplay muted and unmute on first interaction
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const tryPlayWithSound = async () => {
+      v.muted = false;
+      v.autoplay = true;
+      try {
+        await v.play();
+      } catch {
+        // Fallback: play muted, then unmute on first user interaction
+        v.muted = true;
+        try {
+          await v.play();
+        } catch {/* ignore */}
+        const onInteract = async () => {
+          try {
+            v.muted = false;
+            await v.play();
+          } catch {/* ignore */}
+          window.removeEventListener("click", onInteract);
+          window.removeEventListener("keydown", onInteract);
+          window.removeEventListener("touchstart", onInteract);
+        };
+        window.addEventListener("click", onInteract, { once: true });
+        window.addEventListener("keydown", onInteract, { once: true });
+        window.addEventListener("touchstart", onInteract, { once: true });
+      }
+    };
+    tryPlayWithSound();
+  }, []);
+
+  return (
+    <div className="relative min-h-[100dvh] text-bright-white bg-[#000000]">
+      <div className="relative z-10 min-h-[100dvh] flex flex-col items-center justify-center px-4 py-10">
+        <div className="w-full max-w-2xl text-center rounded-xl border border-electric-green/20 bg-deep-charcoal/40 backdrop-blur-md p-6 shadow-xl space-y-5">
+          <GlitchText text="DEAD INTERNET THEORY" className="text-3xl sm:text-5xl text-electric-green" />
+
+          {/* Video between title and subheading */}
+          <div className="relative w-full overflow-hidden rounded-lg border border-electric-green/20">
+            <video
+              ref={videoRef}
+              src="/videos/0905.mp4"
+              preload="auto"
+              playsInline
+              // Prevent PiP or other OS-level UI where supported
+              disablePictureInPicture
+              controlsList="nodownload noplaybackrate noremoteplayback nofullscreen"
+              className="w-full h-auto"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </div>
+
+          <p className="text-electric-green/80">Enter access code to unlock the album.</p>
+          {!online && (
+            <div className="text-sm text-digital-blue">Offline — checks will resume when back online.</div>
+          )}
+          <form onSubmit={submit} className="flex gap-2 justify-center">
+            <input
+              className="w-full bg-stone-gray text-bright-white placeholder:text-neutral-tan/80 border border-electric-green/30 rounded px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric-green focus-visible:border-electric-green"
+              placeholder="Access code"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              autoFocus
+              aria-label="Access code"
+            />
+            <button
+              className="inline-flex items-center justify-center px-4 py-2 rounded border border-electric-green bg-electric-green text-deep-charcoal font-medium transition hover:brightness-110 hover:shadow-[0_0_12px_var(--color-electric-green)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric-green disabled:opacity-70"
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="inline-flex items-center">
+                  Checking...
+                  <span className="ml-2 h-4 w-4 animate-spin rounded-full border-2 border-electric-green border-t-transparent" />
+                </span>
+              ) : (
+                "Enter"
+              )}
+            </button>
+          </form>
+          {error && (
+            <div
+              ref={errRef}
+              tabIndex={-1}
+              className="error-message text-sm"
+              role="alert"
+              aria-live="polite"
+            >
+              {error}
+            </div>
+          )}
+          <div className="text-xs text-electric-green">Hint: try DEADINTERNET</div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Bottom image under all elements */}
+        <div className="mt-8 w-full max-w-3xl">
+          <div className="relative w-full aspect-[4/3]">
+            <Image
+              src="/images/IMG_8051.PNG"
+              alt="Artwork"
+              fill
+              className="object-contain rounded-lg"
+              sizes="(max-width: 768px) 100vw, 768px"
+              priority
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
