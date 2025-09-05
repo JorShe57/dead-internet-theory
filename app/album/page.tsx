@@ -58,8 +58,8 @@ export default function AlbumPage() {
         ]}
       />
 
-      {/* Hero video under title, above player (hide on small screens to avoid scroll) */}
-      <div className="relative w-full overflow-hidden rounded-lg border border-accent/30 bg-surface/10 hidden md:block">
+      {/* Hero video under title, above player */}
+      <div className="relative w-full overflow-hidden rounded-lg border border-accent/30 bg-surface/10">
         <video
           src="/videos/DIT%20AL.mp4"
           playsInline
@@ -88,22 +88,9 @@ export default function AlbumPage() {
               ],
             }}
           />
-          {/* Mobile track picker (no-scroll design) */}
-          <div className="md:hidden">
-            <label className="sr-only" htmlFor="track-select">Select track</label>
-            <select
-              id="track-select"
-              className="input w-full"
-              value={current}
-              onChange={(e) => setCurrent(Number(e.target.value))}
-            >
-              {tracks.map((t, i) => (
-                <option key={t.file} value={i}>{i + 1}. {t.title}</option>
-              ))}
-            </select>
-          </div>
         </div>
-        <div className="space-y-2 hidden md:block max-h-[60vh] overflow-y-auto pr-1">
+        {/* Full track list under player on mobile (stacked), in right column on desktop */}
+        <div className="space-y-2">
           <div className="text-accent">Tracks</div>
           <ul className="space-y-1">
             {tracks.map((t, i) => (
