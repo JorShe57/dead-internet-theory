@@ -80,7 +80,7 @@ export default function ChatPage() {
           <div className="text-sm text-digital-blue">Offline — messages will send when back online.</div>
         )}
 
-        <div className="h-[50vh] overflow-y-auto border border-accent/30 rounded p-3 bg-surface/10 text-left">
+        <div className="h-[80dvh] overflow-y-auto border border-accent/30 rounded p-3 bg-surface/10 text-left">
           {messages.length === 0 ? (
             <div className="text-sm opacity-80">Start a conversation. Ask about the dead internet.</div>
           ) : (
@@ -137,9 +137,15 @@ function ChatBubble({ role, text }: { role: "user" | "bot"; text: string }) {
       <div className={`text-xs mb-1 ${isUser ? "text-accent/80 text-right" : "text-digital-blue/80"}`}>
         {isUser ? "You" : "Dead Internet"}
       </div>
-      <div className={`rounded px-3 py-2 leading-relaxed border ${isUser ? "border-accent text-foreground bg-deep-charcoal/40" : "border-digital-blue text-foreground bg-deep-charcoal/30"}`}>
-        {text}
-      </div>
+      {isUser ? (
+        <div className={`rounded px-3 py-2 leading-relaxed border border-accent text-foreground bg-deep-charcoal/40 whitespace-pre-wrap`}>
+          {text}
+        </div>
+      ) : (
+        <pre className="code-block whitespace-pre-wrap overflow-x-auto">
+{text}
+        </pre>
+      )}
     </div>
   );
 }
