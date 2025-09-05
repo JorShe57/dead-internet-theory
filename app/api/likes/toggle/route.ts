@@ -58,6 +58,9 @@ export async function POST(req: NextRequest) {
         .from("post_likes")
         .select("post_id", { count: "exact", head: true })
         .eq("post_id", post_id);
+      if (typeof count === "number") {
+        await supabase.from("posts").update({ likes: count }).eq("id", post_id);
+      }
       return NextResponse.json({ liked: false, likes: typeof count === "number" ? count : undefined });
     }
 
@@ -70,6 +73,9 @@ export async function POST(req: NextRequest) {
       .from("post_likes")
       .select("post_id", { count: "exact", head: true })
       .eq("post_id", post_id);
+    if (typeof count === "number") {
+      await supabase.from("posts").update({ likes: count }).eq("id", post_id);
+    }
     return NextResponse.json({ liked: true, likes: typeof count === "number" ? count : undefined });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Bad request";

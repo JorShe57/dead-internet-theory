@@ -25,10 +25,21 @@ export default function PostFeed() {
         .order("created_at", { ascending: false })
         .limit(100);
       if (error) logError("Fetch posts error:", error.message);
-      if (mounted) {
-        setPosts(data ?? []);
-        setLoading(false);
-      }
+      let resolved = data ?? [];
+      // Reconcile likes from post_likes to ensure persistence across reloads
+      try {
+        const ids = resolved.map((p) => p.id);
+        if (ids.length) {
+          const { data: likeRows } = await supabase
+            .from('post_likes')
+            .select('post_id')
+            .in('post_id', ids);
+          const counts: Record<string, number> = {};
+          (likeRows ?? []).forEach((r: any) => { counts[r.post_id] = (counts[r.post_id] || 0) + 1; });
+          resolved = resolved.map((p) => ({ ...p, likes: counts[p.id] ?? 0 }));
+        }
+      } catch (e) { logError('likes reconcile failed', e); }
+      if (mounted) { setPosts(resolved); setLoading(false); }
       // After posts load, compute liked state and comment counts/previews
       try {
         const ids = (data ?? []).map((p) => p.id);

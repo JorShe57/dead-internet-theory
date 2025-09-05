@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Howl } from "howler";
+import { Howl, Howler } from "howler";
 import { formatTime } from "@/lib/utils";
 import { Pause, Play, Volume2, SkipBack, SkipForward } from "lucide-react";
 
@@ -28,6 +28,8 @@ export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMe
 
   // Load sound (Howler, HTML5)
   useEffect(() => {
+    // Stop any other playing sounds to avoid double playback
+    try { Howler.stop(); } catch {}
     howlRef.current?.unload();
     setProgress(0);
     setDuration(0);
@@ -36,6 +38,9 @@ export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMe
       src: [src],
       html5: true,
       onend: () => { setIsPlaying(false); onEnd?.(); },
+      onplay: () => { setIsPlaying(true); },
+      onpause: () => { setIsPlaying(false); },
+      onstop: () => { setIsPlaying(false); },
       onload: () => { setDuration(sound.duration()); setLoading(false); },
       onloaderror: () => setLoading(false),
     });
@@ -84,8 +89,14 @@ export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMe
 
   const toggle = () => {
     const s = howlRef.current; if (!s) return;
-    if (s.playing()) { s.pause(); setIsPlaying(false); try { (navigator as any)?.mediaSession && ((navigator as any).mediaSession.playbackState = 'paused'); } catch {} }
-    else { s.play(); setIsPlaying(true); try { (navigator as any)?.mediaSession && ((navigator as any).mediaSession.playbackState = 'playing'); } catch {} }
+    if (s.playing()) {
+      s.pause();
+      try { (navigator as any)?.mediaSession && ((navigator as any).mediaSession.playbackState = 'paused'); } catch {}
+    } else {
+      try { Howler.stop(); } catch {}
+      s.play();
+      try { (navigator as any)?.mediaSession && ((navigator as any).mediaSession.playbackState = 'playing'); } catch {}
+    }
   };
 
   const onScrub = (val: number) => { const s = howlRef.current; if (!s) return; s.seek(val); setProgress(val); };

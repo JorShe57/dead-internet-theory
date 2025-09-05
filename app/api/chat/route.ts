@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-const N8N_WEBHOOK = "https://jordenshevel.app.n8n.cloud/webhook/e46fe921-cc30-484b-996e-1e14e083fdfc/chat";
+const N8N_WEBHOOK = "https://jordenshevel.app.n8n.cloud/webhook/e914f728-25d2-49e3-b9c8-19d760b137fc";
 
 export async function POST(req: NextRequest) {
   try {
@@ -37,4 +37,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: msg }, { status: 400 });
   }
 }
-
