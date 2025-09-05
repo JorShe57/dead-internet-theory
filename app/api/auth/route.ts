@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
         .from("user_sessions")
         .insert({ session_token: token });
       if (!insErr) break;
-      if ((insErr as any).code === "23505") {
+      if ((insErr as { code?: string }).code === "23505") {
         token = newToken();
         continue;
       }

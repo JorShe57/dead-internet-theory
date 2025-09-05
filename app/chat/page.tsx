@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import GlitchText from "@/components/ui/GlitchText";
-import { fetchWithTimeoutRetry, useNetworkStatus } from "@/lib/utils";
+import { fetchWithTimeoutRetry } from "@/lib/utils";
+import { useNetworkStatus } from "@/lib/hooks/useNetworkStatus";
 import { useToast } from "@/components/system/ToastProvider";
 
 type Msg = { id: string; role: "user" | "bot"; text: string; ts: number };
@@ -54,8 +55,9 @@ export default function ChatPage() {
       const botText: string = String(data.reply ?? "").trim() || "...";
       const botMsg: Msg = { id: crypto.randomUUID?.() || String(Date.now() + 1), role: "bot", text: botText, ts: Date.now() };
       setMessages((m) => [...m, botMsg]);
-    } catch (e: any) {
-      toast({ title: "Chat failed", description: e?.message || "Network error", variant: "error" });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Network error";
+      toast({ title: "Chat failed", description: msg, variant: "error" });
       // Offer a simple failure message
       const botMsg: Msg = { id: crypto.randomUUID?.() || String(Date.now() + 1), role: "bot", text: "Signal lost. Try again.", ts: Date.now() };
       setMessages((m) => [...m, botMsg]);
@@ -148,4 +150,3 @@ function TypingBubble() {
     </div>
   );
 }
-

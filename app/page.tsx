@@ -4,7 +4,7 @@ import GlitchText from "@/components/ui/GlitchText";
 import Image from "next/image";
 import { exchangeCodeForSession, validateSession } from "@/lib/auth";
 import { useRouter } from "next/navigation";
-import { useNetworkStatus } from "@/lib/utils";
+import { useNetworkStatus } from "@/lib/hooks/useNetworkStatus";
 import { useToast } from "@/components/system/ToastProvider";
 
 export default function Home() {

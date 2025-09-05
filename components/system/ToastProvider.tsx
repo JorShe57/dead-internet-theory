@@ -25,8 +25,8 @@ export default function ToastProvider({ children }: { children: React.ReactNode 
   const [items, setItems] = useState<Toast[]>([]);
   const genId = () => {
     try {
-      const g: any = globalThis as any;
-      if (g?.crypto?.randomUUID) return g.crypto.randomUUID();
+      const g = globalThis as { crypto?: { randomUUID?: () => string } };
+      if (g.crypto?.randomUUID) return g.crypto.randomUUID();
     } catch {}
     return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
   };

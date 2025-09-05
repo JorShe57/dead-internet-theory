@@ -63,19 +63,4 @@ export function logError(...args: any[]) {
   console.error("[DIT]", ...args);
 }
 
-export function useNetworkStatus() {
-  if (typeof window === "undefined") return { online: true } as const;
-  const { useEffect, useState } = require("react") as typeof import("react");
-  const [online, setOnline] = useState(navigator.onLine);
-  useEffect(() => {
-    const on = () => setOnline(true);
-    const off = () => setOnline(false);
-    window.addEventListener("online", on);
-    window.addEventListener("offline", off);
-    return () => {
-      window.removeEventListener("online", on);
-      window.removeEventListener("offline", off);
-    };
-  }, []);
-  return { online } as const;
-}
+// Client-only hooks are defined in lib/hooks/* to keep this file SSR-safe.
