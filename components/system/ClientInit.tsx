@@ -12,6 +12,15 @@ export default function ClientInit() {
       if (!mounted) return;
       if (res.ok) logInfo("Startup: Supabase OK");
       else logError("Startup: Supabase failed", res.error);
+      // Register service worker for PWA install and better media behavior
+      if ('serviceWorker' in navigator) {
+        try {
+          await navigator.serviceWorker.register('/sw.js');
+          logInfo('Service worker registered');
+        } catch (e) {
+          logError('SW registration failed', e);
+        }
+      }
     })();
     return () => {
       mounted = false;
@@ -19,4 +28,3 @@ export default function ClientInit() {
   }, []);
   return null;
 }
-

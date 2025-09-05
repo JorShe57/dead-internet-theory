@@ -6,22 +6,22 @@ import AudioPlayer from "@/components/ui/AudioPlayer";
 import AppHeader from "@/components/ui/AppHeader";
 
 const tracks: { title: string; file: string }[] = [
-  { title: "Apples & Oranges (MIX V.1.1)", file: "/audio/Apples%20%26%20Oranges%20(MIX%20V.1.1).mp3" },
-  { title: "COMPLX (MIX V1.3)", file: "/audio/COMPLX%20(MIX%20V1.3).mp3" },
   { title: "Crown vs Pedestal (MIX 3.0)", file: "/audio/Crown%20vs%20Pedestal%20(MIX%203.0).mp3" },
-  { title: "Dead Internet - NEEDS VERSE (Mix V.03)", file: "/audio/Dead%20Internet%20-%20NEEDS%20VERSE%20(Mix%20V.03).mp3" },
+  { title: "COMPLX (MIX V1.3)", file: "/audio/COMPLX%20(MIX%20V1.3).mp3" },
   { title: "Devil Wears Resale (MIX V.05)", file: "/audio/Devil%20Wears%20Resale%20(MIX%20V.05).mp3" },
-  { title: "Everything's Fine (MIX V0.5)", file: "/audio/Everything%27s%20Fine%20(MIX%20V0.5).mp3" },
-  { title: "Ghosts & Amusement Parks (MIX V1.3)", file: "/audio/Ghosts%20%26%20Amusement%20Parks%20(MIX%20V1.3).mp3" },
-  { title: "Hibernate (NEW Mix 2.1)", file: "/audio/Hibernate%20(NEW%20Mix%202.1).mp3" },
-  { title: "Jawscercize (MIX V2.1)", file: "/audio/Jawscercize%20(MIX%20V2.1).mp3" },
-  { title: "Loading Out (MIX V2.0)", file: "/audio/Loading%20Out%20(MIX%20V2.0).mp3" },
-  { title: "Orwell (MIX V1.1)", file: "/audio/Orwell%20(MIX%20V1.1).mp3" },
-  { title: "Pleasant Monsters & Mean Sprites (MIX V3.0)", file: "/audio/Pleasant%20Monsters%20%26%20Mean%20Sprites%20(MIX%20V3.0).mp3" },
-  { title: "Sunken Living Room (MIX V3.5)", file: "/audio/Sunken%20Living%20Room%20(MIX%20V3.5).mp3" },
-  { title: "Terrariums (MIX V1.3)", file: "/audio/Terrariums%20(MIX%20V1.3).mp3" },
   { title: "Trash Day (MIX V2.1)", file: "/audio/Trash%20Day%20(MIX%20V2.1).mp3" },
+  { title: "Terrariums (MIX V1.3)", file: "/audio/Terrariums%20(MIX%20V1.3).mp3" },
+  { title: "Sunken Living Room (MIX V3.5)", file: "/audio/Sunken%20Living%20Room%20(MIX%20V3.5).mp3" },
+  { title: "Pleasant Monsters & Mean Sprites (MIX V3.0)", file: "/audio/Pleasant%20Monsters%20%26%20Mean%20Sprites%20(MIX%20V3.0).mp3" },
+  { title: "Ghosts & Amusement Parks (MIX V1.3)", file: "/audio/Ghosts%20%26%20Amusement%20Parks%20(MIX%20V1.3).mp3" },
+  { title: "Orwell (MIX V1.1)", file: "/audio/Orwell%20(MIX%20V1.1).mp3" },
+  { title: "Everything's Fine (MIX V0.5)", file: "/audio/Everything%27s%20Fine%20(MIX%20V0.5).mp3" },
+  { title: "Apples & Oranges (MIX V.1.1)", file: "/audio/Apples%20%26%20Oranges%20(MIX%20V.1.1).mp3" },
+  { title: "Jawscercize (MIX V2.1)", file: "/audio/Jawscercize%20(MIX%20V2.1).mp3" },
   { title: "Zeros (FINFINFIN MIX V3.0)", file: "/audio/Zeros%20(FINFINFIN%20MIX%20V3.0).mp3" },
+  { title: "Dead Internet - NEEDS VERSE (Mix V.03)", file: "/audio/Dead%20Internet%20-%20NEEDS%20VERSE%20(Mix%20V.03).mp3" },
+  { title: "Loading Out (MIX V2.0)", file: "/audio/Loading%20Out%20(MIX%20V2.0).mp3" },
+  { title: "Hibernate (NEW Mix 2.1)", file: "/audio/Hibernate%20(NEW%20Mix%202.1).mp3" },
 ];
 
 export default function AlbumPage() {
@@ -58,8 +58,8 @@ export default function AlbumPage() {
         ]}
       />
 
-      {/* Hero video under title, above player */}
-      <div className="relative w-full overflow-hidden rounded-lg border border-accent/30 bg-surface/10">
+      {/* Hero video under title, above player (hide on small screens to avoid scroll) */}
+      <div className="relative w-full overflow-hidden rounded-lg border border-accent/30 bg-surface/10 hidden md:block">
         <video
           src="/videos/DIT%20AL.mp4"
           playsInline
@@ -72,7 +72,7 @@ export default function AlbumPage() {
       </div>
 
       <div className="grid md:grid-cols-3 gap-4">
-        <div className="md:col-span-2 space-y-4">
+        <div className="md:col-span-2 space-y-3">
           <div className="text-sm opacity-80">Now Playing: <span className="text-accent font-medium">{currentTrack.title}</span></div>
           <AudioPlayer
             src={currentTrack.file}
@@ -88,8 +88,22 @@ export default function AlbumPage() {
               ],
             }}
           />
+          {/* Mobile track picker (no-scroll design) */}
+          <div className="md:hidden">
+            <label className="sr-only" htmlFor="track-select">Select track</label>
+            <select
+              id="track-select"
+              className="input w-full"
+              value={current}
+              onChange={(e) => setCurrent(Number(e.target.value))}
+            >
+              {tracks.map((t, i) => (
+                <option key={t.file} value={i}>{i + 1}. {t.title}</option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 hidden md:block max-h-[60vh] overflow-y-auto pr-1">
           <div className="text-accent">Tracks</div>
           <ul className="space-y-1">
             {tracks.map((t, i) => (

@@ -17,7 +17,7 @@ export default function AppHeader({
 }) {
   const [open, setOpen] = useState(false);
   return (
-    <header className="mb-4">
+    <header className="mb-4 sticky top-0 z-40 bg-deep-charcoal/80 backdrop-blur border-b border-accent/20 py-2">
       <div className="flex items-center justify-between gap-3">
         <GlitchText text={title} className="text-xl sm:text-2xl" />
 
@@ -64,4 +64,3 @@ export default function AppHeader({
     </header>
   );
 }
-

@@ -1,0 +1,15 @@
+{
+  "name": "Dead Internet Theory",
+  "short_name": "DIT",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#39FF14",
+  "description": "Cyberpunk music streaming and social wall.",
+  "icons": [
+    { "src": "/images/IMG_8051.PNG", "sizes": "192x192", "type": "image/png" },
+    { "src": "/images/IMG_8051.PNG", "sizes": "512x512", "type": "image/png" }
+  ]
+}
+
