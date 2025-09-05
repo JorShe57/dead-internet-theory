@@ -9,7 +9,7 @@ import QRScanner from "@/components/ui/QRScanner";
 import { fetchWithTimeoutRetry } from "@/lib/utils";
 import { useToast } from "@/components/system/ToastProvider";
 import Image from "next/image";
-import Link from "next/link";
+import AppHeader from "@/components/ui/AppHeader";
 
 export default function SocialPage() {
   const router = useRouter();
@@ -55,17 +55,19 @@ export default function SocialPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-baseline justify-between">
-        <h1 className="glitch text-2xl" data-text="SOCIAL WALL">SOCIAL WALL</h1>
-        <div className="flex items-center gap-2">
-          <Link href="/album" className="btn" aria-label="Back to album">← Back to Album</Link>
-          <Link href="/chat" className="btn" aria-label="Chat with Dead Internet">Chat</Link>
-          <QRScanner onResult={onQr} />
-          {special && (
-            <span className="text-accent text-xs">Care package: ON</span>
-          )}
-        </div>
-      </div>
+      <AppHeader
+        title="SOCIAL WALL"
+        menuLinks={[
+          { label: "← Back to Album", href: "/album", ariaLabel: "Back to album" },
+          { label: "Chat", href: "/chat", ariaLabel: "Chat with Dead Internet" },
+        ]}
+        rightChildren={
+          <div className="flex items-center gap-2">
+            <QRScanner onResult={onQr} />
+            {special && <span className="text-accent text-xs">Care package: ON</span>}
+          </div>
+        }
+      />
       {/* Image under title and above content */}
       <div className="relative w-full overflow-hidden rounded-lg border border-accent/30 bg-surface/10">
         <div className="relative w-full aspect-[16/9]">

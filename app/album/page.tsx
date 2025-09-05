@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { validateSession } from "@/lib/auth";
 import AudioPlayer from "@/components/ui/AudioPlayer";
-import Link from "next/link";
+import AppHeader from "@/components/ui/AppHeader";
 
 const tracks: { title: string; file: string }[] = [
   { title: "Apples & Oranges (MIX V.1.1)", file: "/audio/Apples%20%26%20Oranges%20(MIX%20V.1.1).mp3" },
@@ -50,13 +50,13 @@ export default function AlbumPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-baseline justify-between">
-        <h1 className="glitch text-2xl" data-text="ALBUM">ALBUM</h1>
-        <div className="flex items-center gap-2">
-          <Link href="/social" className="btn">Social Wall</Link>
-          <Link href="/chat" className="btn" aria-label="Chat with Dead Internet">Chat</Link>
-        </div>
-      </div>
+      <AppHeader
+        title="ALBUM"
+        menuLinks={[
+          { label: "Social Wall", href: "/social" },
+          { label: "Chat", href: "/chat", ariaLabel: "Chat with Dead Internet" },
+        ]}
+      />
 
       {/* Hero video under title, above player */}
       <div className="relative w-full overflow-hidden rounded-lg border border-accent/30 bg-surface/10">

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import GlitchText from "@/components/ui/GlitchText";
+import AppHeader from "@/components/ui/AppHeader";
 import { fetchWithTimeoutRetry } from "@/lib/utils";
 import { useNetworkStatus } from "@/lib/hooks/useNetworkStatus";
 import { useToast } from "@/components/system/ToastProvider";
@@ -69,7 +69,13 @@ export default function ChatPage() {
   return (
     <div className="min-h-[100dvh] flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-3xl text-center rounded-xl border border-electric-green/20 bg-deep-charcoal/40 backdrop-blur-md p-6 shadow-xl space-y-5">
-        <GlitchText text="THE DEAD INTERNET THEORY" className="text-2xl sm:text-4xl text-electric-green" />
+        <AppHeader
+          title="THE DEAD INTERNET THEORY"
+          menuLinks={[
+            { label: "← Back to Album", href: "/album", ariaLabel: "Back to album" },
+            { label: "Social Wall", href: "/social" },
+          ]}
+        />
         {!online && (
           <div className="text-sm text-digital-blue">Offline — messages will send when back online.</div>
         )}
