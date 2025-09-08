@@ -91,7 +91,14 @@ export default function PostFeed() {
       )
       .subscribe((s) => {
         logInfo("Realtime status:", s);
-        if (s === "SUBSCRIBED") setStatus("subscribed");
+        if (s === "SUBSCRIBED") {
+          setStatus("subscribed");
+          // Clear polling interval when channel recovers
+          if (pollRef.current) {
+            clearInterval(pollRef.current);
+            pollRef.current = null;
+          }
+        }
         if (s === "CHANNEL_ERROR" || s === "TIMED_OUT" || s === "CLOSED") {
           setStatus("error");
           if (!pollRef.current) {
@@ -202,6 +209,8 @@ function CommentSection({ postId }: { postId: string }) {
   const [items, setItems] = useState<Array<{ id: string; content: string; author_name: string | null; created_at: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     let mounted = true;
     const load = async () => {
@@ -241,14 +250,54 @@ function CommentSection({ postId }: { postId: string }) {
         onSubmit={async (e) => {
           e.preventDefault();
           const clean = (text || '').trim();
-          if (!clean) return;
-          await fetch('/api/comments', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ post_id: postId, content: clean }) });
-          setText('');
+          if (!clean || submitting) return;
+          
+          setSubmitting(true);
+          setError(null);
+          
+          try {
+            const response = await fetch('/api/comments', { 
+              method: 'POST', 
+              headers: { 'content-type': 'application/json' }, 
+              body: JSON.stringify({ post_id: postId, content: clean }) 
+            });
+            
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({ error: 'Failed to submit comment' }));
+              throw new Error(errorData.error || `Server error: ${response.status}`);
+            }
+            
+            // Success - clear the input
+            setText('');
+          } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to submit comment';
+            setError(errorMessage);
+            logError('Comment submission failed:', err);
+          } finally {
+            setSubmitting(false);
+          }
         }}
       >
-        <input className="input flex-1" placeholder="Add a comment" value={text} onChange={(e) => setText(e.target.value)} />
-        <button className="btn">Send</button>
+        <input 
+          className="input flex-1" 
+          placeholder="Add a comment" 
+          value={text} 
+          onChange={(e) => setText(e.target.value)}
+          disabled={submitting}
+        />
+        <button 
+          className="btn" 
+          type="submit"
+          disabled={submitting || !text.trim()}
+        >
+          {submitting ? 'Sending...' : 'Send'}
+        </button>
       </form>
+      {error && (
+        <div className="mt-2 text-xs text-red-400 bg-red-900/20 border border-red-400/30 rounded p-2">
+          {error}
+        </div>
+      )}
     </div>
   );
 }

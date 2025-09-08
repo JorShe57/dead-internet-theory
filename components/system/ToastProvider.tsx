@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 type Toast = {
   id: string;
@@ -23,6 +23,9 @@ export function useToast() {
 
 export default function ToastProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<Toast[]>([]);
+  const timeoutRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
+  const isMountedRef = useRef(true);
+  
   const genId = () => {
     try {
       const g = globalThis as { crypto?: { randomUUID?: () => string } };
@@ -30,16 +33,39 @@ export default function ToastProvider({ children }: { children: React.ReactNode 
     } catch {}
     return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
   };
+  
   const toast = useCallback((t: Omit<Toast, "id">) => {
     const id = genId();
     const item: Toast = { id, durationMs: 3000, ...t };
     setItems((prev) => [...prev, item]);
-    setTimeout(() => {
-      setItems((prev) => prev.filter((i) => i.id !== id));
+    
+    const timeoutId = setTimeout(() => {
+      // Clear the timeout from our tracking set
+      timeoutRef.current.delete(timeoutId);
+      
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        setItems((prev) => prev.filter((i) => i.id !== id));
+      }
     }, item.durationMs);
-  }, []);
+    
+    // Track the timeout
+    timeoutRef.current.add(timeoutId);
+  }, [genId]);
 
   const value = useMemo(() => ({ toast }), [toast]);
+
+  // Cleanup effect to clear all timeouts on unmount
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      // Clear all remaining timeouts
+      timeoutRef.current.forEach((timeoutId) => {
+        clearTimeout(timeoutId);
+      });
+      timeoutRef.current.clear();
+    };
+  }, []);
 
   return (
     <ToastCtx.Provider value={value}>

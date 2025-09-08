@@ -2,6 +2,7 @@ export type ErrorContext = {
   area: string;
   meta?: Record<string, unknown>;
 };
+export class UserVisibleError extends Error {}
 
 export function userMessageFromError(error: unknown, fallback = "Something went wrong") {
   if (typeof error === "string") return error;

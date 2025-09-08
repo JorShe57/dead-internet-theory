@@ -27,6 +27,24 @@ export default function Home() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent duplicate submissions
+    if (loading) return;
+    
+    // Validate code is not empty
+    if (!code.trim()) {
+      setError("Please enter an access code");
+      toast({ title: "Error", description: "Please enter an access code", variant: "error" });
+      return;
+    }
+    
+    // Check if online (guard for SSR)
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setError("You are currently offline. Please check your connection and try again.");
+      toast({ title: "Offline", description: "Please check your connection and try again", variant: "error" });
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     try {
@@ -114,7 +132,7 @@ export default function Home() {
             />
             <button
               className="inline-flex items-center justify-center px-4 py-2 rounded border border-electric-green bg-electric-green text-deep-charcoal font-medium transition hover:brightness-110 hover:shadow-[0_0_12px_var(--color-electric-green)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric-green disabled:opacity-70"
-              disabled={loading}
+              disabled={loading || !online}
             >
               {loading ? (
                 <span className="inline-flex items-center">
@@ -137,7 +155,9 @@ export default function Home() {
               {error}
             </div>
           )}
-          <div className="text-xs text-electric-green">Hint: try DEADINTERNET</div>
+          {process.env.NODE_ENV !== 'production' && process.env.SHOW_ACCESS_HINT === 'true' && (
+            <div className="text-xs text-electric-green">Hint: try [ACCESS_CODE_PLACEHOLDER]</div>
+          )}
         </div>
 
         {/* Bottom image under all elements */}

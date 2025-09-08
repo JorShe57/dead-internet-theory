@@ -34,6 +34,7 @@ export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMe
     setProgress(0);
     setDuration(0);
     setLoading(true);
+    setIsPlaying(false);
     const sound = new Howl({
       src: [src],
       html5: true,
@@ -43,6 +44,7 @@ export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMe
       onstop: () => { setIsPlaying(false); },
       onload: () => { setDuration(sound.duration()); setLoading(false); },
       onloaderror: () => setLoading(false),
+      onplayerror: () => setLoading(false),
     });
     howlRef.current = sound;
     return () => { try { sound.unload(); } catch {} };

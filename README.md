@@ -1,5 +1,16 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Environment Variables
+
+Create a `.env.local` file in the root directory with the following variables:
+
+```bash
+# Development Access Code Hint
+# Set to 'true' to show access code hints in development (defaults to false)
+# NEVER set to 'true' in production
+SHOW_ACCESS_HINT=false
+```
+
 ## Getting Started
 
 First, run the development server:

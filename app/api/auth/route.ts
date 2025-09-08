@@ -59,18 +59,36 @@ export async function POST(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     if (!access) return NextResponse.json({ error: "Invalid code" }, { status: 401 });
 
-    // Create session row (best-effort), retry on unique collisions
+    // Create session row with retry on unique collisions
     let token = newToken();
+    let insertSuccess = false;
+    
     for (let i = 0; i < 3; i++) {
       const { error: insErr } = await supabase
         .from("user_sessions")
-        .insert({ session_token: token });
-      if (!insErr) break;
+        .insert({ 
+          session_token: token,
+          last_active: new Date().toISOString()
+        });
+      
+      if (!insErr) {
+        insertSuccess = true;
+        break;
+      }
+      
+      // Only retry on unique violation errors
       if ((insErr as { code?: string }).code === "23505") {
         token = newToken();
         continue;
       }
+      
+      // Propagate any non-23505 error immediately
       return NextResponse.json({ error: insErr.message }, { status: 500 });
+    }
+    
+    // Verify the insert succeeded after the loop
+    if (!insertSuccess) {
+      return NextResponse.json({ error: "Failed to create session after retries" }, { status: 500 });
     }
 
     return NextResponse.json({ token, type: access.type ?? "album" });
@@ -84,8 +102,13 @@ export async function GET(req: NextRequest) {
   const TTL_HOURS = 24;
   console.info("[DIT][auth][GET] validate session");
   const supabase = getClient();
-  const { searchParams } = new URL(req.url);
-  const token = searchParams.get("token");
+  
+  // Extract token from Authorization header
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return NextResponse.json({ ok: false }, { status: 400 });
+  }
+  const token = authHeader.substring(7); // Remove "Bearer " prefix
   if (!token) return NextResponse.json({ ok: false }, { status: 400 });
   const { data, error } = await supabase
     .from("user_sessions")
@@ -111,8 +134,13 @@ export async function GET(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   console.info("[DIT][auth][DELETE] sign out");
   const supabase = getClient();
-  const { searchParams } = new URL(req.url);
-  const token = searchParams.get("token");
+  
+  // Extract token from Authorization header
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return NextResponse.json({ ok: false }, { status: 400 });
+  }
+  const token = authHeader.substring(7); // Remove "Bearer " prefix
   if (!token) return NextResponse.json({ ok: false }, { status: 400 });
   await supabase.from("user_sessions").delete().eq("session_token", token);
   return NextResponse.json({ ok: true });
