@@ -19,6 +19,7 @@ export default function RootLayout({
       <head>
         <link rel="manifest" href="/manifest.webmanifest" />
         <meta name="theme-color" content="#39FF14" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="Dead Internet Theory" />
         <link rel="apple-touch-icon" href="/images/IMG_8051.PNG" />

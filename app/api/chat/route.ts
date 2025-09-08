@@ -2,20 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-// Get webhook URL from environment variable
-const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL;
-
-if (!N8N_WEBHOOK_URL) {
-  throw new Error("N8N_WEBHOOK_URL environment variable is required but not set");
+function getWebhookUrl(): string | null {
+  const url = process.env.N8N_WEBHOOK_URL;
+  return url && url.trim() !== "" ? url : null;
 }
-
-// Type assertion since we've already checked it's not undefined
-const webhookUrl: string = N8N_WEBHOOK_URL;
 
 export async function POST(req: NextRequest) {
   try {
-    // Configuration validation
-    if (!N8N_WEBHOOK_URL) {
+    // Configuration validation (checked at request-time to avoid build failures)
+    const webhookUrl = getWebhookUrl();
+    if (!webhookUrl) {
       return NextResponse.json({ error: "Service configuration error" }, { status: 500 });
     }
 

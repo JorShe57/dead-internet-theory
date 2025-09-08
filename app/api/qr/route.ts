@@ -33,17 +33,16 @@ function rateLimit(req: NextRequest): boolean {
 }
 
 function getClient() {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_ANON_KEY;
-  
-  if (!url) {
-    throw new Error("Missing required environment variable: SUPABASE_URL. Please set this in your .env.local file.");
+  // Prefer NEXT_PUBLIC_* to match the rest of the app, fall back to non-prefixed vars
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+
+  if (!url || !key) {
+    throw new Error(
+      "Missing Supabase environment variables. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local."
+    );
   }
-  
-  if (!key) {
-    throw new Error("Missing required environment variable: SUPABASE_ANON_KEY. Please set this in your .env.local file.");
-  }
-  
+
   return createClient(url, key);
 }
 

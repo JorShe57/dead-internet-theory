@@ -2,14 +2,23 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Environment Variables
 
-Create a `.env.local` file in the root directory with the following variables:
+Create a `.env.local` file in the root directory with at least:
 
 ```bash
-# Development Access Code Hint
-# Set to 'true' to show access code hints in development (defaults to false)
-# NEVER set to 'true' in production
+# Supabase (public anon key)
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+
+# Development access code hint (optional; do NOT enable in prod)
 SHOW_ACCESS_HINT=false
+
+# Chat webhook (optional at build time; required at runtime to use /api/chat)
+# N8N_WEBHOOK_URL=https://your-n8n-host/webhook/...
 ```
+
+Notes:
+- The app’s API routes and client utilities consistently use `NEXT_PUBLIC_SUPABASE_*`.
+- `/api/chat` reads `N8N_WEBHOOK_URL` at request time, so builds do not fail if it’s missing. Set it in production when enabling chat.
 
 ## Getting Started
 

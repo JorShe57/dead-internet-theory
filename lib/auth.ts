@@ -25,18 +25,12 @@ export function setSessionToken(token: string) {
   if (typeof window === "undefined") return;
   localStorage.setItem(STORAGE_KEY, token);
   localStorage.setItem(EXP_KEY, String(Date.now() + SESSION_TTL_MS));
-  
-  // Also set as HTTP-only cookie for server-side access
-  document.cookie = `dit_session_token=${token}; path=/; max-age=${SESSION_TTL_MS / 1000}; secure; samesite=strict`;
 }
 
 export function clearSessionToken() {
   if (typeof window === "undefined") return;
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(EXP_KEY);
-  
-  // Also clear the cookie
-  document.cookie = `dit_session_token=; path=/; max-age=0; secure; samesite=strict`;
 }
 
 export async function validateSession(token?: string): Promise<boolean> {

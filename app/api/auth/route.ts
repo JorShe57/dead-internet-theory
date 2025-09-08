@@ -91,7 +91,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to create session after retries" }, { status: 500 });
     }
 
-    return NextResponse.json({ token, type: access.type ?? "album" });
+    const res = NextResponse.json({ token, type: access.type ?? "album" });
+    // Also set HTTP-only cookie for server-side access
+    const maxAge = 60 * 60 * 24; // 24h
+    res.headers.append(
+      "Set-Cookie",
+      `dit_session_token=${token}; Path=/; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=Strict`
+    );
+    return res;
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Bad request";
     return NextResponse.json({ error: message }, { status: 400 });
@@ -143,7 +150,13 @@ export async function DELETE(req: NextRequest) {
   const token = authHeader.substring(7); // Remove "Bearer " prefix
   if (!token) return NextResponse.json({ ok: false }, { status: 400 });
   await supabase.from("user_sessions").delete().eq("session_token", token);
-  return NextResponse.json({ ok: true });
+  const res = NextResponse.json({ ok: true });
+  // Expire the cookie on the server side (to remove HttpOnly cookie)
+  res.headers.append(
+    "Set-Cookie",
+    "dit_session_token=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict"
+  );
+  return res;
 }
 export const runtime = "nodejs";
 

@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { validateSessionServerSide } from "@/lib/auth";
+import { validateSessionServerSide } from "@/lib/server/auth";
 import SocialClient from "@/components/social/SocialClient";
 
 /**

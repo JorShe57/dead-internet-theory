@@ -16,9 +16,14 @@ type Props = {
     album?: string;
     artwork?: MediaArtwork[];
   };
+  /**
+   * When the `src` changes, automatically start playback once loaded.
+   * This enables seamless play-through between tracks.
+   */
+  autoplayOnSrcChange?: boolean;
 };
 
-export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMeta }: Props) {
+export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMeta, autoplayOnSrcChange = true }: Props) {
   const howlRef = useRef<Howl | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -42,13 +47,20 @@ export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMe
       onplay: () => { setIsPlaying(true); },
       onpause: () => { setIsPlaying(false); },
       onstop: () => { setIsPlaying(false); },
-      onload: () => { setDuration(sound.duration()); setLoading(false); },
+      onload: () => {
+        setDuration(sound.duration());
+        setLoading(false);
+        // Auto-start playback on new track load when enabled
+        if (autoplayOnSrcChange) {
+          try { sound.play(); } catch {}
+        }
+      },
       onloaderror: () => setLoading(false),
       onplayerror: () => setLoading(false),
     });
     howlRef.current = sound;
     return () => { try { sound.unload(); } catch {} };
-  }, [src, onEnd]);
+  }, [src, onEnd, autoplayOnSrcChange]);
 
   useEffect(() => { howlRef.current?.volume(volume); }, [volume]);
 
