@@ -14,6 +14,9 @@ SHOW_ACCESS_HINT=false
 
 # Chat webhook (optional at build time; required at runtime to use /api/chat)
 # N8N_WEBHOOK_URL=https://your-n8n-host/webhook/...
+
+# Guardian chat webhook (homepage password hint chat; separate from internal chat)
+# N8N_GUARDIAN_WEBHOOK_URL=https://your-n8n-host/guardian-webhook/...
 ```
 
 Notes:

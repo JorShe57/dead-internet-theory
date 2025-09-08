@@ -6,6 +6,7 @@ import { exchangeCodeForSession, validateSession } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useNetworkStatus } from "@/lib/hooks/useNetworkStatus";
 import { useToast } from "@/components/system/ToastProvider";
+import GuardianChat from "@/components/ui/GuardianChat";
 
 export default function Home() {
   const [code, setCode] = useState("");
@@ -158,6 +159,9 @@ export default function Home() {
           {process.env.NODE_ENV !== 'production' && process.env.SHOW_ACCESS_HINT === 'true' && (
             <div className="text-xs text-electric-green">Hint: try [ACCESS_CODE_PLACEHOLDER]</div>
           )}
+
+          {/* Guardian chat for helping users discover the access code; no persisted history */}
+          <GuardianChat />
         </div>
 
         {/* Bottom image under all elements */}
