@@ -62,7 +62,7 @@ export default function GuardianChat() {
   }
 
   return (
-    <div className="mt-4 border border-accent/30 rounded p-3 bg-surface/10">
+    <div className="mt-4 border border-accent/30 rounded p-3 bg-surface/10 w-full max-w-full">
       <div className="text-accent text-sm mb-2">
         Hint: Ask the Password Guardian below for the access code.
       </div>
@@ -80,20 +80,20 @@ export default function GuardianChat() {
         )}
       </div>
       <form
-        className="mt-2 flex gap-2"
+        className="mt-2 flex gap-2 items-stretch"
         onSubmit={(e) => {
           e.preventDefault();
           if (canSend) void sendMessage();
         }}
       >
         <input
-          className="input flex-1"
+          className="input flex-1 min-w-0"
           placeholder="Ask the Guardian..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           aria-label="Guardian message"
         />
-        <button className="btn" type="submit" disabled={!canSend} aria-busy={sending} aria-label="Send">
+        <button className="btn shrink-0" type="submit" disabled={!canSend} aria-busy={sending} aria-label="Send">
           {sending ? "Sending" : "Send"}
         </button>
       </form>
@@ -131,4 +131,3 @@ function Typing() {
     </div>
   );
 }
-

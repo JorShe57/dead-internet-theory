@@ -26,7 +26,8 @@ export default function MiniPlayer() {
     <>
       {/* Toggle button (always visible) */}
       <button
-        className="fixed bottom-4 right-4 z-[10001] btn inline-flex items-center gap-2 bg-electric-green text-deep-charcoal border-electric-green"
+        className="fixed right-4 z-[10001] btn inline-flex items-center gap-2 bg-electric-green text-deep-charcoal border-electric-green"
+        style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }}
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? "Hide player" : "Show player"}
         aria-expanded={open}
