@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { validateSession } from "@/lib/auth";
-import AudioPlayer from "@/components/ui/AudioPlayer";
+import { usePlayer } from "@/components/system/PlayerProvider";
 import AppHeader from "@/components/ui/AppHeader";
 
 const tracks: { title: string; file: string }[] = [
@@ -28,6 +28,7 @@ export default function AlbumPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const [current, setCurrent] = useState(0);
+  const { hasQueue, setQueue, playIndex } = usePlayer();
 
   useEffect(() => {
     (async () => {
@@ -72,37 +73,39 @@ export default function AlbumPage() {
       </div>
 
       <div className="grid md:grid-cols-3 gap-3">
-        <div className="md:col-span-2 space-y-3">
-          <AudioPlayer
-            src={currentTrack.file}
-            title={currentTrack.title}
-            onEnd={() => setCurrent((i) => (i + 1) % tracks.length)}
-            onPrev={() => setCurrent((i) => (i - 1 + tracks.length) % tracks.length)}
-            onNext={() => setCurrent((i) => (i + 1) % tracks.length)}
-            mediaMeta={{
-              artist: "Dead Internet Theory",
-              album: "Dead Internet Theory",
-              artwork: [
-                { src: "/images/IMG_8051.PNG", sizes: "512x512", type: "image/png" },
-              ],
-            }}
-          />
-        </div>
         {/* Full track list; constrained height to avoid page overflow */}
-        <div className="space-y-2 max-h-[42vh] md:max-h-[60vh] overflow-y-auto pr-1">
+        <div className="md:col-span-2 space-y-2 max-h-[42vh] md:max-h-[60vh] overflow-y-auto pr-1">
           <div className="text-accent">Tracks</div>
           <ul className="space-y-1">
             {tracks.map((t, i) => (
               <li key={t.file}>
                 <button
                   className={`w-full text-left px-3 py-2 rounded border ${i === current ? "border-accent text-accent" : "border-accent/50 text-accent/80"}`}
-                  onClick={() => setCurrent(i)}
+                  onClick={() => {
+                    setCurrent(i);
+                    // Initialize the shared queue if not set, or just jump to index
+                    if (!hasQueue) setQueue(tracks, i);
+                    else playIndex(i);
+                  }}
                 >
                   {i + 1}. {t.title}
                 </button>
               </li>
             ))}
           </ul>
+        </div>
+        <div className="space-y-2">
+          <div className="text-sm text-accent/80">
+            Player lives at the bottom and keeps playing across pages.
+          </div>
+          <button
+            className="btn"
+            onClick={() => {
+              if (!hasQueue) setQueue(tracks, current);
+            }}
+          >
+            {hasQueue ? "Now Playing in Mini Player" : "Start Playing in Mini Player"}
+          </button>
         </div>
       </div>
     </div>

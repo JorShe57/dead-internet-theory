@@ -3,6 +3,8 @@ import "./globals.css";
 import ClientInit from "@/components/system/ClientInit";
 import ToastProvider from "@/components/system/ToastProvider";
 import AddToHomePrompt from "@/components/system/AddToHomePrompt";
+import PlayerProvider from "@/components/system/PlayerProvider";
+import MiniPlayer from "@/components/ui/MiniPlayer";
 
 export const metadata: Metadata = {
   title: "Dead Internet Theory",
@@ -26,7 +28,10 @@ export default function RootLayout({
       </head>
       <body className="antialiased min-h-dvh bg-deep-charcoal text-bright-white">
         <ToastProvider>
-          <div className="mx-auto max-w-5xl px-4 py-6">{children}</div>
+          <PlayerProvider>
+            <div className="mx-auto max-w-5xl px-4 py-6">{children}</div>
+            <MiniPlayer />
+          </PlayerProvider>
           <ClientInit />
           <AddToHomePrompt />
         </ToastProvider>
