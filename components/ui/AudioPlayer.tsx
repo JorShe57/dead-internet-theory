@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Howl, Howler } from "howler";
-import { formatTime } from "@/lib/utils";
+import { cn, formatTime } from "@/lib/utils";
 import { Pause, Play, Volume2, SkipBack, SkipForward } from "lucide-react";
 
 type MediaArtwork = { src: string; sizes?: string; type?: string };
@@ -21,9 +21,17 @@ type Props = {
    * This enables seamless play-through between tracks.
    */
   autoplayOnSrcChange?: boolean;
+  /**
+   * Visual variant for container background.
+   */
+  variant?: "default" | "solid";
+  /**
+   * Optional additional class names for the root container.
+   */
+  className?: string;
 };
 
-export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMeta, autoplayOnSrcChange = true }: Props) {
+export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMeta, autoplayOnSrcChange = true, variant = "default", className }: Props) {
   const howlRef = useRef<Howl | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -117,7 +125,14 @@ export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMe
   const onChangeVolume = (v: number) => { setVolume(v); howlRef.current?.volume(v); };
 
   return (
-    <div className="relative w-full border border-accent/50 rounded p-4 bg-surface/10" aria-busy={loading}>
+    <div
+      className={cn(
+        "relative w-full rounded p-4",
+        variant === "solid" ? "bg-deep-charcoal border border-accent" : "border border-accent/50 bg-surface/10",
+        className
+      )}
+      aria-busy={loading}
+    >
       {loading && (
         <div className="absolute inset-0 grid place-items-center bg-deep-charcoal/60 rounded">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-electric-green border-t-transparent" aria-label="Loading audio" />
