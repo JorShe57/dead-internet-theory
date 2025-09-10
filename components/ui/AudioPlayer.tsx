@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Howl, Howler } from "howler";
 import { cn, formatTime } from "@/lib/utils";
 import { Pause, Play, Volume2, SkipBack, SkipForward } from "lucide-react";
+import { getSessionToken } from "@/lib/auth";
 
 type MediaArtwork = { src: string; sizes?: string; type?: string };
 type Props = {
@@ -38,6 +39,8 @@ export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMe
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(0.8);
   const [loading, setLoading] = useState(true);
+  const startedRef = useRef<string | null>(null); // track_key of current started src
+  const playIdRef = useRef<string | null>(null);
 
   // Load sound (Howler, HTML5)
   useEffect(() => {
@@ -52,7 +55,28 @@ export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMe
       src: [src],
       html5: true,
       onend: () => { setIsPlaying(false); onEnd?.(); },
-      onplay: () => { setIsPlaying(true); },
+      onplay: async () => {
+        setIsPlaying(true);
+        // fire start only once per new source
+        if (startedRef.current !== src) {
+          startedRef.current = src;
+          try {
+            const token = getSessionToken();
+            const idempotency = `${src}:${Date.now().toString(36)}`;
+            const res = await fetch("/api/analytics/track", {
+              method: "POST",
+              headers: {
+                "content-type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              },
+              body: JSON.stringify({ event: "start", track_key: src, idempotency_key: idempotency }),
+              cache: "no-store",
+            });
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data.play_id) playIdRef.current = String(data.play_id);
+          } catch { /* ignore analytics errors */ }
+        }
+      },
       onpause: () => { setIsPlaying(false); },
       onstop: () => { setIsPlaying(false); },
       onload: () => {
@@ -123,6 +147,23 @@ export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMe
 
   const onScrub = (val: number) => { const s = howlRef.current; if (!s) return; s.seek(val); setProgress(val); };
   const onChangeVolume = (v: number) => { setVolume(v); howlRef.current?.volume(v); };
+
+  // Best-effort end ping when track finishes (handled in onend) or component unmounts
+  useEffect(() => {
+    return () => {
+      const playId = playIdRef.current;
+      if (!playId) return;
+      try {
+        fetch("/api/analytics/track", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ event: "end", play_id: playId, position_ms: Math.floor(progress * 1000) }),
+          keepalive: true,
+        }).catch(() => {});
+      } catch {}
+      playIdRef.current = null;
+    };
+  }, [progress]);
 
   return (
     <div

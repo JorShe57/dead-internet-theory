@@ -256,3 +256,38 @@ END $$;
 
 /* Uncomment the line below to schedule daily cleanup */
 -- SELECT cron.schedule('purge_sessions_daily', '@daily', $$SELECT public.purge_expired_sessions();$$);
+
+/* -------------------------------------------------- */
+/* 13. Track plays analytics */
+CREATE TABLE IF NOT EXISTS public.track_plays (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  track_key text NOT NULL,
+  session_token text,
+  started_at timestamptz NOT NULL DEFAULT now(),
+  completed boolean NOT NULL DEFAULT false,
+  completed_at timestamptz,
+  ms_played integer DEFAULT 0,
+  user_agent text,
+  ip inet,
+  idempotency_key text UNIQUE
+);
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS track_plays_track_key_started_idx ON public.track_plays (track_key, started_at DESC);
+CREATE INDEX IF NOT EXISTS track_plays_session_idx ON public.track_plays (session_token);
+
+-- Enable RLS and allow public access (same model as other tables)
+ALTER TABLE public.track_plays ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'track_plays_public_insert' AND tablename = 'track_plays' AND schemaname = 'public') THEN
+    CREATE POLICY track_plays_public_insert ON public.track_plays FOR INSERT WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'track_plays_public_update' AND tablename = 'track_plays' AND schemaname = 'public') THEN
+    CREATE POLICY track_plays_public_update ON public.track_plays FOR UPDATE USING (true) WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'track_plays_public_read' AND tablename = 'track_plays' AND schemaname = 'public') THEN
+    CREATE POLICY track_plays_public_read ON public.track_plays FOR SELECT USING (true);
+  END IF;
+END $$;
