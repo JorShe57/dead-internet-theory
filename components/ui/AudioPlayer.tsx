@@ -115,8 +115,8 @@ export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMe
     try {
       const meta = new (window as any).MediaMetadata({
         title: title || "",
-        artist: mediaMeta?.artist || "Dead Internet Theory",
-        album: mediaMeta?.album || "Dead Internet Theory",
+        artist: mediaMeta?.artist || "Dead Internet",
+        album: mediaMeta?.album || "Dead Internet",
         artwork: mediaMeta?.artwork || [],
       });
       nav.mediaSession.metadata = meta;

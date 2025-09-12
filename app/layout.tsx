@@ -7,7 +7,7 @@ import PlayerProvider from "@/components/system/PlayerProvider";
 import MiniPlayer from "@/components/ui/MiniPlayer";
 
 export const metadata: Metadata = {
-  title: "Dead Internet Theory",
+  title: "Dead Internet",
   description: "Cyberpunk music streaming and social wall",
 };
 
@@ -23,7 +23,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#39FF14" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-title" content="Dead Internet Theory" />
+        <meta name="apple-mobile-web-app-title" content="Dead Internet" />
         <link rel="apple-touch-icon" href="/images/IMG_8051.PNG" />
       </head>
       <body className="antialiased min-h-dvh bg-deep-charcoal text-bright-white">

@@ -70,7 +70,7 @@ export default function ChatPage() {
     <div className="min-h-[100dvh] flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-3xl text-center rounded-xl border border-electric-green/20 bg-deep-charcoal/40 backdrop-blur-md p-6 shadow-xl space-y-5">
         <AppHeader
-          title="THE DEAD INTERNET THEORY"
+          title="DEAD INTERNET"
           menuLinks={[
             { label: "← Back to Album", href: "/album", ariaLabel: "Back to album" },
             { label: "Social Wall", href: "/social" },

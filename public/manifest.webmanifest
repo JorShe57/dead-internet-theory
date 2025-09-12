@@ -1,5 +1,5 @@
 {
-  "name": "Dead Internet Theory",
+  "name": "Dead Internet",
   "short_name": "DIT",
   "start_url": "/",
   "scope": "/",
@@ -12,4 +12,3 @@
     { "src": "/images/IMG_8051.PNG", "sizes": "512x512", "type": "image/png" }
   ]
 }
-

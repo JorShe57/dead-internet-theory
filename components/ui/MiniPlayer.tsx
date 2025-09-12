@@ -58,8 +58,8 @@ export default function MiniPlayer() {
             onPrev={prev}
             onNext={next}
             mediaMeta={{
-              artist: "Dead Internet Theory",
-              album: "Dead Internet Theory",
+              artist: "Dead Internet",
+              album: "Dead Internet",
               artwork: [{ src: "/images/IMG_8051.PNG", sizes: "512x512", type: "image/png" }],
             }}
             autoplayOnSrcChange

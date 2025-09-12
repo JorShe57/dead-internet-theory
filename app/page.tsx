@@ -92,7 +92,7 @@ export default function Home() {
     <div className="relative min-h-[100dvh] text-bright-white bg-[#000000]">
       <div className="relative z-10 min-h-[100dvh] flex flex-col items-center justify-center px-4 py-10">
         <div className="w-full max-w-2xl text-center rounded-xl border border-electric-green/20 bg-deep-charcoal/40 backdrop-blur-md p-6 shadow-xl space-y-5">
-          <GlitchText text="DEAD INTERNET THEORY" className="text-3xl sm:text-5xl text-electric-green" />
+          <GlitchText text="DEAD INTERNET" className="text-3xl sm:text-5xl text-electric-green" />
 
           {/* Video between title and subheading */
           }
