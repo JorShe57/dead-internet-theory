@@ -10,6 +10,7 @@ import GuardianChat from "@/components/ui/GuardianChat";
 
 export default function Home() {
   const [code, setCode] = useState("");
+  const [showGuardian, setShowGuardian] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -66,33 +67,22 @@ export default function Home() {
     }
   }, [error]);
 
-  // Try to autoplay video with audio on load; if blocked, autoplay muted and unmute on first interaction
+  // Try to autoplay video; fall back to muted if blocked
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
     const tryPlayWithSound = async () => {
-      v.muted = false;
+      // Video has no audio track, but keep this resilient
+      v.muted = true;
       v.autoplay = true;
       try {
         await v.play();
       } catch {
-        // Fallback: play muted, then unmute on first user interaction
+        // Fallback: ensure muted and try again
         v.muted = true;
         try {
           await v.play();
         } catch {/* ignore */}
-        const onInteract = async () => {
-          try {
-            v.muted = false;
-            await v.play();
-          } catch {/* ignore */}
-          window.removeEventListener("click", onInteract);
-          window.removeEventListener("keydown", onInteract);
-          window.removeEventListener("touchstart", onInteract);
-        };
-        window.addEventListener("click", onInteract, { once: true });
-        window.addEventListener("keydown", onInteract, { once: true });
-        window.addEventListener("touchstart", onInteract, { once: true });
       }
     };
     tryPlayWithSound();
@@ -104,13 +94,17 @@ export default function Home() {
         <div className="w-full max-w-2xl text-center rounded-xl border border-electric-green/20 bg-deep-charcoal/40 backdrop-blur-md p-6 shadow-xl space-y-5">
           <GlitchText text="DEAD INTERNET THEORY" className="text-3xl sm:text-5xl text-electric-green" />
 
-          {/* Video between title and subheading */}
+          {/* Video between title and subheading */
+          }
           <div className="relative w-full overflow-hidden rounded-lg border border-electric-green/20">
             <video
               ref={videoRef}
               src="/videos/0905.mp4"
               preload="auto"
               playsInline
+              autoPlay
+              muted
+              loop
               // Prevent PiP or other OS-level UI where supported
               disablePictureInPicture
               controlsList="nodownload noplaybackrate noremoteplayback nofullscreen"
@@ -160,21 +154,37 @@ export default function Home() {
             <div className="text-xs text-electric-green">Hint: try [ACCESS_CODE_PLACEHOLDER]</div>
           )}
 
-          {/* Guardian chat for helping users discover the access code; no persisted history */}
-          <GuardianChat />
-        </div>
+          {/* Image should be visible before optional helper chat */}
+          <div className="w-full max-w-3xl mx-auto">
+            <div className="relative w-full aspect-[4/3] mt-4">
+              <Image
+                src="/images/IMG_8051.PNG"
+                alt="Artwork"
+                fill
+                className="object-contain rounded-lg"
+                sizes="(max-width: 768px) 100vw, 768px"
+                priority
+              />
+            </div>
+          </div>
 
-        {/* Bottom image under all elements */}
-        <div className="mt-8 w-full max-w-3xl">
-          <div className="relative w-full aspect-[4/3]">
-            <Image
-              src="/images/IMG_8051.PNG"
-              alt="Artwork"
-              fill
-              className="object-contain rounded-lg"
-              sizes="(max-width: 768px) 100vw, 768px"
-              priority
-            />
+          {/* Collapsible Password Guardian chat (collapsed by default) */}
+          <div className="mt-4 text-left">
+            <button
+              type="button"
+              className="w-full flex items-center justify-between rounded border border-electric-green/40 bg-deep-charcoal/40 px-3 py-2 hover:border-electric-green transition"
+              aria-expanded={showGuardian}
+              aria-controls="password-guardian-panel"
+              onClick={() => setShowGuardian((s) => !s)}
+            >
+              <span className="text-electric-green">Need a hint? Ask the Password Guardian</span>
+              <span className={`transition-transform ${showGuardian ? "rotate-180" : "rotate-0"}`}>▾</span>
+            </button>
+            {showGuardian && (
+              <div id="password-guardian-panel" className="mt-2">
+                <GuardianChat />
+              </div>
+            )}
           </div>
         </div>
       </div>
