@@ -6,22 +6,22 @@ import { usePlayer } from "@/components/system/PlayerProvider";
 import AppHeader from "@/components/ui/AppHeader";
 
 const tracks: { title: string; file: string }[] = [
-  { title: "Crown vs Pedestal", file: "/audio/Crown%20vs%20Pedestal%20(MIX%203.0).mp3" },
-  { title: "COMPLX", file: "/audio/COMPLX%20(MIX%20V1.3).mp3" },
-  { title: "Devil Wears Resale", file: "/audio/Devil%20Wears%20Resale%20(MIX%20V.05).mp3" },
-  { title: "Trash Day", file: "/audio/Trash%20Day%20(MIX%20V2.1).mp3" },
-  { title: "Terrariums", file: "/audio/Terrariums%20(MIX%20V1.3).mp3" },
-  { title: "Sunken Living Room", file: "/audio/Sunken%20Living%20Room%20(MIX%20V3.5).mp3" },
-  { title: "Pleasant Monsters & Mean Sprites", file: "/audio/Pleasant%20Monsters%20%26%20Mean%20Sprites%20(MIX%20V3.0).mp3" },
-  { title: "Ghosts & Amusement Parks", file: "/audio/Ghosts%20%26%20Amusement%20Parks%20(MIX%20V1.3).mp3" },
-  { title: "Orwell", file: "/audio/Orwell%20(MIX%20V1.1).mp3" },
-  { title: "Everything's Fine", file: "/audio/Everything%27s%20Fine%20(MIX%20V0.5).mp3" },
-  { title: "Apples & Oranges", file: "/audio/Apples%20%26%20Oranges%20(MIX%20V.1.1).mp3" },
-  { title: "Jawscercize", file: "/audio/Jawscercize%20(MIX%20V2.1).mp3" },
-  { title: "Zeros", file: "/audio/Zeros%20(FINFINFIN%20MIX%20V3.0).mp3" },
-  { title: "Dead Internet - NEEDS VERSE", file: "/audio/Dead%20Internet%20-%20NEEDS%20VERSE%20(Mix%20V.03).mp3" },
-  { title: "Loading Out", file: "/audio/Loading%20Out%20(MIX%20V2.0).mp3" },
-  { title: "Hibernate", file: "/audio/Hibernate%20(NEW%20Mix%202.1).mp3" },
+  { title: "Crown vs Pedestal", file: "/audio/1%20-%20Crown%20vs%20Pedestal.mp3" },
+  { title: "COMPLX", file: "/audio/2%20-%20COMPLX%20(MP3).mp3" },
+  { title: "Devil Wears Resale", file: "/audio/3%20-%20Devil%20Wears%20Resale%20(MIX%20V2).mp3" },
+  { title: "Trash Day", file: "/audio/4%20-%20Trash%20Day%20(MP3).mp3" },
+  { title: "Terrariums", file: "/audio/5%20-%20Terrerium%20(MP3).mp3" },
+  { title: "Sunken Living Room", file: "/audio/7%20-%20Sunken%20Living%20Room%20(MIX%20V3.5).mp3" },
+  { title: "Pleasant Monsters & Mean Sprites", file: "/audio/6%20-%20Pleasant%20Monsters%20%26%20Mean%20Sprites%20(MP3).mp3" },
+  { title: "Ghosts & Amusement Parks", file: "/audio/8%20-%20Ghosts%20%26%20Amusement%20Parks%20(MIX%20V2).mp3" },
+  { title: "Orwell", file: "/audio/9%20-%20Orwell%20(MP3).mp3" },
+  { title: "Everything's Fine", file: "/audio/10%20-%20Everything_s%20Fine%20(MIX%20V2).mp3" },
+  { title: "Apples & Oranges", file: "/audio/11%20-%20Apples%20%26%20Oranges.mp3" },
+  { title: "Jawscercize", file: "/audio/12%20-%20Jawscercize%20(MP3).mp3" },
+  { title: "Zeros", file: "/audio/13%20-%20Zeros%20(MP3).mp3" },
+  { title: "Dead Internet - NEEDS VERSE", file: "/audio/14%20-%20Dead%20Internet%20(Mix%20V2.0).mp3" },
+  { title: "Loading Out", file: "/audio/15%20-%20Loading%20Out%20(MIX%20V2.0).mp3" },
+  { title: "Hibernate", file: "/audio/16%20-%20Hibernate%20(MP3).mp3" },
 ];
 
 export default function AlbumPage() {
