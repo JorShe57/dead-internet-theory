@@ -19,7 +19,7 @@ const tracks: { title: string; file: string }[] = [
   { title: "Apples & Oranges", file: "/audio/11%20-%20Apples%20%26%20Oranges.mp3" },
   { title: "Jawscercize", file: "/audio/12%20-%20Jawscercize%20(MP3).mp3" },
   { title: "Zeros", file: "/audio/13%20-%20Zeros%20(MP3).mp3" },
-  { title: "Dead Internet - NEEDS VERSE", file: "/audio/14%20-%20Dead%20Internet%20(Mix%20V2.0).mp3" },
+  { title: "Dead Internet", file: "/audio/14%20-%20Dead%20Internet%20(Mix%20V2.0).mp3" },
   { title: "Loading Out", file: "/audio/15%20-%20Loading%20Out%20(MIX%20V2.0).mp3" },
   { title: "Hibernate", file: "/audio/16%20-%20Hibernate%20(MP3).mp3" },
 ];
