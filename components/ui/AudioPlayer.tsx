@@ -57,6 +57,9 @@ export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMe
       onend: () => { setIsPlaying(false); onEnd?.(); },
       onplay: async () => {
         setIsPlaying(true);
+        // Update MediaSession playback state
+        const nav: any = typeof navigator !== "undefined" ? (navigator as any) : null;
+        if (nav?.mediaSession) nav.mediaSession.playbackState = 'playing';
         // fire start only once per new source
         if (startedRef.current !== src) {
           startedRef.current = src;
@@ -77,14 +80,29 @@ export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMe
           } catch { /* ignore analytics errors */ }
         }
       },
-      onpause: () => { setIsPlaying(false); },
-      onstop: () => { setIsPlaying(false); },
+      onpause: () => {
+        setIsPlaying(false);
+        const nav: any = typeof navigator !== "undefined" ? (navigator as any) : null;
+        if (nav?.mediaSession) nav.mediaSession.playbackState = 'paused';
+      },
+      onstop: () => {
+        setIsPlaying(false);
+        const nav: any = typeof navigator !== "undefined" ? (navigator as any) : null;
+        if (nav?.mediaSession) nav.mediaSession.playbackState = 'paused';
+      },
       onload: () => {
         setDuration(sound.duration());
         setLoading(false);
         // Auto-start playback on new track load when enabled
         if (autoplayOnSrcChange) {
-          try { sound.play(); } catch {}
+          try {
+            sound.play();
+            // Notify MediaSession that we're playing (critical for lock screen autoplay)
+            const nav: any = typeof navigator !== "undefined" ? (navigator as any) : null;
+            if (nav?.mediaSession) {
+              nav.mediaSession.playbackState = 'playing';
+            }
+          } catch {}
         }
       },
       onloaderror: () => setLoading(false),
