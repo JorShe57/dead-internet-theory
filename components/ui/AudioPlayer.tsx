@@ -4,6 +4,13 @@ import { Howl, Howler } from "howler";
 import { cn, formatTime } from "@/lib/utils";
 import { Pause, Play, Volume2, SkipBack, SkipForward } from "lucide-react";
 import { getSessionToken } from "@/lib/auth";
+import { 
+  mediaSessionLogger, 
+  isIOSSafari, 
+  updatePlaybackState, 
+  updatePositionState, 
+  updateMetadata 
+} from "@/lib/mediaSessionLogger";
 
 type MediaArtwork = { src: string; sizes?: string; type?: string };
 type Props = {
@@ -58,8 +65,8 @@ export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMe
       onplay: async () => {
         setIsPlaying(true);
         // Update MediaSession playback state
-        const nav: any = typeof navigator !== "undefined" ? (navigator as any) : null;
-        if (nav?.mediaSession) nav.mediaSession.playbackState = 'playing';
+        updatePlaybackState('playing');
+        mediaSessionLogger.log('play', { src });
         // fire start only once per new source
         if (startedRef.current !== src) {
           startedRef.current = src;
@@ -82,26 +89,26 @@ export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMe
       },
       onpause: () => {
         setIsPlaying(false);
-        const nav: any = typeof navigator !== "undefined" ? (navigator as any) : null;
-        if (nav?.mediaSession) nav.mediaSession.playbackState = 'paused';
+        updatePlaybackState('paused');
+        mediaSessionLogger.log('pause', { src });
       },
       onstop: () => {
         setIsPlaying(false);
-        const nav: any = typeof navigator !== "undefined" ? (navigator as any) : null;
-        if (nav?.mediaSession) nav.mediaSession.playbackState = 'paused';
+        updatePlaybackState('paused');
+        mediaSessionLogger.log('stop', { src });
       },
       onload: () => {
-        setDuration(sound.duration());
+        const dur = sound.duration();
+        setDuration(dur);
         setLoading(false);
+        // Update position state for iOS lock screen
+        updatePositionState(0, dur);
         // Auto-start playback on new track load when enabled
         if (autoplayOnSrcChange) {
           try {
             sound.play();
             // Notify MediaSession that we're playing (critical for lock screen autoplay)
-            const nav: any = typeof navigator !== "undefined" ? (navigator as any) : null;
-            if (nav?.mediaSession) {
-              nav.mediaSession.playbackState = 'playing';
-            }
+            updatePlaybackState('playing');
           } catch {}
         }
       },
@@ -114,56 +121,164 @@ export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMe
 
   useEffect(() => { howlRef.current?.volume(volume); }, [volume]);
 
-  // Progress ticker
+  // Progress ticker with position state updates for iOS
   useEffect(() => {
     let raf: number;
+    let lastPositionUpdate = 0;
     const tick = () => {
       const s = howlRef.current;
-      if (s && s.playing()) setProgress(s.seek() as number);
+      if (s && s.playing()) {
+        const pos = s.seek() as number;
+        setProgress(pos);
+        // Update position state every 1 second for iOS lock screen
+        const now = Date.now();
+        if (now - lastPositionUpdate > 1000) {
+          updatePositionState(pos, duration);
+          lastPositionUpdate = now;
+        }
+      }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [duration]);
 
   // Media Session metadata + actions
   useEffect(() => {
     const nav: any = typeof navigator !== "undefined" ? (navigator as any) : null;
     if (!nav || !("mediaSession" in nav)) return;
+    
+    const iOS = isIOSSafari();
+    
     try {
-      const meta = new (window as any).MediaMetadata({
-        title: title || "",
-        artist: mediaMeta?.artist || "Dead Internet",
-        album: mediaMeta?.album || "Dead Internet",
-        artwork: mediaMeta?.artwork || [],
-      });
-      nav.mediaSession.metadata = meta;
+      // Update metadata using helper function
+      updateMetadata(
+        title || "",
+        mediaMeta?.artist || "Dead Internet",
+        mediaMeta?.album || "Dead Internet",
+        mediaMeta?.artwork || []
+      );
+      
+      // CRITICAL: Play handler must be synchronous for iOS
       nav.mediaSession.setActionHandler("play", () => {
-        const s = howlRef.current; if (!s) return; s.play(); setIsPlaying(true);
-        if (nav.mediaSession) nav.mediaSession.playbackState = 'playing';
+        mediaSessionLogger.log('play');
+        const s = howlRef.current;
+        if (!s) return;
+        
+        // Immediate synchronous play() call - critical for iOS
+        try {
+          s.play();
+          setIsPlaying(true);
+          updatePlaybackState('playing');
+        } catch (err) {
+          console.error('[AudioPlayer] Play failed:', err);
+        }
       });
+      
       nav.mediaSession.setActionHandler("pause", () => {
-        const s = howlRef.current; if (!s) return; s.pause(); setIsPlaying(false);
-        if (nav.mediaSession) nav.mediaSession.playbackState = 'paused';
+        mediaSessionLogger.log('pause');
+        const s = howlRef.current;
+        if (!s) return;
+        s.pause();
+        setIsPlaying(false);
+        updatePlaybackState('paused');
       });
-      nav.mediaSession.setActionHandler("previoustrack", onPrev || null);
-      nav.mediaSession.setActionHandler("nexttrack", onNext || null);
-    } catch {}
-  }, [title, mediaMeta?.artist, mediaMeta?.album, onPrev, onNext]);
+      
+      // CRITICAL: Previous track handler for iOS
+      // Must maintain audio session by pausing (not stopping) before track change
+      nav.mediaSession.setActionHandler("previoustrack", onPrev ? () => {
+        mediaSessionLogger.log('previoustrack');
+        const s = howlRef.current;
+        
+        if (iOS && s) {
+          // On iOS, pause (don't stop) to maintain audio session
+          if (s.playing()) {
+            s.pause();
+          }
+          // Keep playback state as "playing" to signal intent to continue
+          updatePlaybackState('playing');
+        }
+        
+        // Trigger prev callback - this will update state and load new track
+        onPrev();
+      } : null);
+      
+      // CRITICAL: Next track handler for iOS
+      nav.mediaSession.setActionHandler("nexttrack", onNext ? () => {
+        mediaSessionLogger.log('nexttrack');
+        const s = howlRef.current;
+        
+        if (iOS && s) {
+          // On iOS, pause (don't stop) to maintain audio session
+          if (s.playing()) {
+            s.pause();
+          }
+          // Keep playback state as "playing" to signal intent to continue
+          updatePlaybackState('playing');
+        }
+        
+        // Trigger next callback - this will update state and load new track
+        onNext();
+      } : null);
+      
+      // Add seek handlers for iOS scrubbing support
+      if (iOS) {
+        nav.mediaSession.setActionHandler("seekbackward", (details: any) => {
+          mediaSessionLogger.log('seekbackward', details);
+          const s = howlRef.current;
+          if (!s) return;
+          const seekTime = details?.seekOffset || 10;
+          const newPos = Math.max(0, (s.seek() as number) - seekTime);
+          s.seek(newPos);
+          setProgress(newPos);
+          updatePositionState(newPos, duration);
+        });
+        
+        nav.mediaSession.setActionHandler("seekforward", (details: any) => {
+          mediaSessionLogger.log('seekforward', details);
+          const s = howlRef.current;
+          if (!s) return;
+          const seekTime = details?.seekOffset || 10;
+          const newPos = Math.min(duration, (s.seek() as number) + seekTime);
+          s.seek(newPos);
+          setProgress(newPos);
+          updatePositionState(newPos, duration);
+        });
+        
+        nav.mediaSession.setActionHandler("seekto", (details: any) => {
+          mediaSessionLogger.log('seekto', details);
+          const s = howlRef.current;
+          if (!s || !details?.seekTime) return;
+          const newPos = Math.max(0, Math.min(details.seekTime, duration));
+          s.seek(newPos);
+          setProgress(newPos);
+          updatePositionState(newPos, duration);
+        });
+      }
+    } catch (err) {
+      console.error('[AudioPlayer] MediaSession setup failed:', err);
+    }
+  }, [title, mediaMeta?.artist, mediaMeta?.album, mediaMeta?.artwork, onPrev, onNext, duration]);
 
   const toggle = () => {
     const s = howlRef.current; if (!s) return;
     if (s.playing()) {
       s.pause();
-      try { (navigator as any)?.mediaSession && ((navigator as any).mediaSession.playbackState = 'paused'); } catch {}
+      updatePlaybackState('paused');
     } else {
       try { Howler.stop(); } catch {}
       s.play();
-      try { (navigator as any)?.mediaSession && ((navigator as any).mediaSession.playbackState = 'playing'); } catch {}
+      updatePlaybackState('playing');
     }
   };
 
-  const onScrub = (val: number) => { const s = howlRef.current; if (!s) return; s.seek(val); setProgress(val); };
+  const onScrub = (val: number) => {
+    const s = howlRef.current;
+    if (!s) return;
+    s.seek(val);
+    setProgress(val);
+    updatePositionState(val, duration);
+  };
   const onChangeVolume = (v: number) => { setVolume(v); howlRef.current?.volume(v); };
 
   // Best-effort end ping when track finishes (handled in onend) or component unmounts
