@@ -205,12 +205,34 @@ If issues arise:
 
 ---
 
+## Additional Fix: Track 5 Lock Screen Issue (2025-10-08)
+
+**Issue:** Track 5 ("Terrariums") specifically breaks iOS lock screen controls, even though it plays fine in-app.
+
+**Root Cause:** Some audio files may have malformed metadata that causes `Howler.duration()` to return `NaN`, `Infinity`, or invalid values. When these values are passed to `MediaSession.setPositionState()`, iOS lock screen controls crash or become unresponsive.
+
+**Fix Applied:**
+1. Added comprehensive validation in `updatePositionState()` helper function
+2. Validate duration on track load before setting state
+3. Validate position values in progress ticker before updates
+4. Validate scrub and seek values before applying
+5. Fallback to safe minimum duration (0.1s) if invalid
+
+**Files Modified:**
+- `lib/mediaSessionLogger.ts` - Added `isValidNumber()` validation in `updatePositionState()`
+- `components/ui/AudioPlayer.tsx` - Added validation in onload, progress ticker, onScrub, and seekto handler
+
+**Result:** Lock screen controls now gracefully handle tracks with invalid metadata instead of crashing.
+
+---
+
 ## Known Limitations
 
 1. **iOS Version:** Requires iOS 14.5+ for full functionality
 2. **Browser:** Only works in Safari, not Chrome/Firefox on iOS (WebKit limitation)
 3. **Background Tab:** Limited functionality when Safari is in background for extended periods
 4. **Scrubbing:** Not supported on all iOS versions, gracefully degrades
+5. **Audio File Metadata:** Files with severely corrupted metadata may show duration as "0:00" but will still play and allow track navigation
 
 ---
 

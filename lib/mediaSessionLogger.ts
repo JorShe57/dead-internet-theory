@@ -118,20 +118,35 @@ export function updatePlaybackState(state: 'none' | 'paused' | 'playing') {
 export function updatePositionState(position: number, duration: number, playbackRate = 1.0) {
   if (!hasMediaSession()) return;
   
+  // Validate inputs to prevent iOS lock screen crashes
+  // Some audio files may have invalid metadata that returns NaN, Infinity, or negative values
+  const isValidNumber = (n: number) => typeof n === 'number' && isFinite(n) && n >= 0;
+  
+  if (!isValidNumber(duration) || !isValidNumber(position)) {
+    if (isDev) {
+      console.warn('[MediaSession] Invalid position state values:', { position, duration });
+    }
+    return; // Skip update rather than crash lock screen
+  }
+  
+  // Ensure duration is at least 0.1 to avoid division by zero
+  const safeDuration = Math.max(0.1, duration);
+  const safePosition = Math.max(0, Math.min(position, safeDuration));
+  
   try {
     const nav = navigator as any;
     if (nav.mediaSession.setPositionState) {
       nav.mediaSession.setPositionState({
-        duration: Math.max(0, duration),
+        duration: safeDuration,
         playbackRate,
-        position: Math.max(0, Math.min(position, duration)),
+        position: safePosition,
       });
-      mediaSessionLogger.log('position_update', { position, duration, playbackRate });
+      mediaSessionLogger.log('position_update', { position: safePosition, duration: safeDuration, playbackRate });
     }
   } catch (err) {
     // Position state errors are common and expected on some browsers
     if (isDev && isIOSSafari()) {
-      console.warn('[MediaSession] Failed to update position state:', err);
+      console.warn('[MediaSession] Failed to update position state:', err, { position, duration });
     }
   }
 }

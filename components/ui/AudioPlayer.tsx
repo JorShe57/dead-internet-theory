@@ -99,10 +99,12 @@ export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMe
       },
       onload: () => {
         const dur = sound.duration();
-        setDuration(dur);
+        // Validate duration to prevent lock screen issues with malformed audio files
+        const validDur = (typeof dur === 'number' && isFinite(dur) && dur > 0) ? dur : 0.1;
+        setDuration(validDur);
         setLoading(false);
         // Update position state for iOS lock screen
-        updatePositionState(0, dur);
+        updatePositionState(0, validDur);
         // Auto-start playback on new track load when enabled
         if (autoplayOnSrcChange) {
           try {
@@ -129,12 +131,15 @@ export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMe
       const s = howlRef.current;
       if (s && s.playing()) {
         const pos = s.seek() as number;
-        setProgress(pos);
-        // Update position state every 1 second for iOS lock screen
-        const now = Date.now();
-        if (now - lastPositionUpdate > 1000) {
-          updatePositionState(pos, duration);
-          lastPositionUpdate = now;
+        // Validate position before updating state
+        if (typeof pos === 'number' && isFinite(pos)) {
+          setProgress(pos);
+          // Update position state every 1 second for iOS lock screen
+          const now = Date.now();
+          if (now - lastPositionUpdate > 1000 && duration > 0) {
+            updatePositionState(pos, duration);
+            lastPositionUpdate = now;
+          }
         }
       }
       raf = requestAnimationFrame(tick);
@@ -250,10 +255,14 @@ export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMe
           mediaSessionLogger.log('seekto', details);
           const s = howlRef.current;
           if (!s || !details?.seekTime) return;
-          const newPos = Math.max(0, Math.min(details.seekTime, duration));
-          s.seek(newPos);
-          setProgress(newPos);
-          updatePositionState(newPos, duration);
+          const seekTime = details.seekTime;
+          // Validate seek time before applying
+          if (typeof seekTime === 'number' && isFinite(seekTime) && seekTime >= 0 && duration > 0) {
+            const newPos = Math.max(0, Math.min(seekTime, duration));
+            s.seek(newPos);
+            setProgress(newPos);
+            updatePositionState(newPos, duration);
+          }
         });
       }
     } catch (err) {
@@ -276,9 +285,12 @@ export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMe
   const onScrub = (val: number) => {
     const s = howlRef.current;
     if (!s) return;
-    s.seek(val);
-    setProgress(val);
-    updatePositionState(val, duration);
+    // Validate scrub value before applying
+    if (typeof val === 'number' && isFinite(val) && val >= 0) {
+      s.seek(val);
+      setProgress(val);
+      updatePositionState(val, duration);
+    }
   };
   const onChangeVolume = (v: number) => { setVolume(v); howlRef.current?.volume(v); };
 
