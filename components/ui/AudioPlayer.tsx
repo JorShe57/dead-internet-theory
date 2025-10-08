@@ -221,30 +221,31 @@ export default function AudioPlayer({ src, title, onEnd, onPrev, onNext, mediaMe
         onNext();
       } : null);
       
-      // Add seek handlers for iOS scrubbing support
+      // Add seek handlers for iOS - map to track navigation
       if (iOS) {
-        nav.mediaSession.setActionHandler("seekbackward", (details: any) => {
-          mediaSessionLogger.log('seekbackward', details);
+        // Seek backward = previous track
+        nav.mediaSession.setActionHandler("seekbackward", onPrev ? () => {
+          mediaSessionLogger.log('seekbackward');
           const s = howlRef.current;
-          if (!s) return;
-          const seekTime = details?.seekOffset || 10;
-          const newPos = Math.max(0, (s.seek() as number) - seekTime);
-          s.seek(newPos);
-          setProgress(newPos);
-          updatePositionState(newPos, duration);
-        });
+          if (s && s.playing()) {
+            s.pause();
+          }
+          updatePlaybackState('playing');
+          onPrev();
+        } : null);
         
-        nav.mediaSession.setActionHandler("seekforward", (details: any) => {
-          mediaSessionLogger.log('seekforward', details);
+        // Seek forward = next track
+        nav.mediaSession.setActionHandler("seekforward", onNext ? () => {
+          mediaSessionLogger.log('seekforward');
           const s = howlRef.current;
-          if (!s) return;
-          const seekTime = details?.seekOffset || 10;
-          const newPos = Math.min(duration, (s.seek() as number) + seekTime);
-          s.seek(newPos);
-          setProgress(newPos);
-          updatePositionState(newPos, duration);
-        });
+          if (s && s.playing()) {
+            s.pause();
+          }
+          updatePlaybackState('playing');
+          onNext();
+        } : null);
         
+        // Seekto for scrubbing timeline (if iOS supports it)
         nav.mediaSession.setActionHandler("seekto", (details: any) => {
           mediaSessionLogger.log('seekto', details);
           const s = howlRef.current;
